@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ManagedWin32;
+using Microsoft.Win32;
+using System;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -8,15 +10,26 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using ManagedWin32;
-using Microsoft.Win32;
 
 namespace NIco
 {
     partial class Home : UserControl
     {
         OpenFileDialog OFD;
-        SaveFileDialog SFD;
+        SaveFileDialog SFD, EFD;
+
+        ImageFormat[] ImageFormats = new ImageFormat[]
+                {
+                    ImageFormat.Png,
+                    ImageFormat.Jpeg,
+                    ImageFormat.Bmp,
+                    ImageFormat.Tiff,
+                    ImageFormat.Wmf,
+                    ImageFormat.Exif,
+                    ImageFormat.Gif,
+                    ImageFormat.Icon,
+                    ImageFormat.Emf
+                };
 
         public Home()
         {
@@ -42,6 +55,16 @@ namespace NIco
                 DefaultExt = ".ico",
                 Filter = "Icon|*.ico"
             };
+
+            EFD = new SaveFileDialog()
+            {
+                Title = "Export to",
+                ValidateNames = true,
+                AddExtension = true,
+
+                DefaultExt = ".png",
+                Filter = "Portable Network Graphics|*.png|Jpeg|*.jpg|Bitmap|*.bmp|Tiff|*.tiff|Windows Metafile|*.wmf|Exif|*.exif|Graphics Interchange Format|*.gif|Icon|*.ico|Enchanced Metafile|*.emf"
+            };
             #endregion
 
             #region Command Bindings
@@ -66,15 +89,11 @@ namespace NIco
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Open, (s, e) => Open()));
 
             CommandBindings.Add(new CommandBinding(ApplicationCommands.SaveAs, (s, e) =>
-            {
-                var exportfd = new SaveFileDialog()
                 {
-                    Title = "Destination",
-                    ValidateNames = true,
-                };
-
-                if (exportfd.ShowDialog().Value) SelectedItem.Bitmap.Save(exportfd.FileName);
-            }, (s, e) => e.CanExecute = Gallery.SelectedIndex != -1));
+                    if (EFD.ShowDialog().Value)
+                        SelectedItem.Bitmap.Save(EFD.FileName, ImageFormats[EFD.FilterIndex - 1]);
+                },
+                (s, e) => e.CanExecute = Gallery.SelectedIndex != -1));
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.IncreaseZoom, (s, e) => zoomSlider.Value += 0.1,
                 (s, e) => e.CanExecute = Gallery.SelectedIndex != -1));
